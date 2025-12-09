@@ -1,27 +1,26 @@
+// server/routes/auth.js
 const express = require('express');
+const router = express.Router();
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
-const router = express.Router();
 
-// @desc    Auth with Google
-// @route   GET /auth/google
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
 
-// @desc    Google auth callback
-// @route   GET /auth/google/callback
+
 router.get(
   '/google/callback',
-  passport.authenticate('google', { failureRedirect: '/' , session: false}),
+  passport.authenticate('google', { session: false, failureRedirect: process.env.CLIENT_URL }),
   (req, res) => {
-    // jwt
+
     const token = jwt.sign(
-      { id: req.user._id, role: req.user.role }, // Payload
+      { id: req.user._id },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '7d' }
     );
 
-    // 前端: http://localhost:3000/login-success
-    res.redirect(`${process.env.CLIENT_URL}/login-success?token=${token}`);
+    res.redirect(`${process.env.CLIENT_URL}/auth-success?token=${token}`);
   }
 );
 
